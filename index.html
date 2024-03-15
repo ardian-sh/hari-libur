@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FullCalendar Example</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* CSS untuk mengubah kursor menjadi pointer saat diarahkan ke tanggal */
+        .fc-daygrid-day.fc-day:hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        <div id="calendar"></div>
+        <div>
+            <span>Sumber Data hari libur nasional : <i><a href="https://dayoffapi.vercel.app/">dayoffapi.vercel.app</a></i></span>
+        </div>
+    </div>
+    <!-- Modal Bootstrap -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Detail Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Konten modal -->
+                    <p id="eventDate"></p>
+                    <p id="eventKeterangan"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <!-- Load Bootstrap JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            setCalendar();
+        });
+
+        //back to modal default
+        $('#eventModal').on('hidden.bs.modal', function (e) {
+            $('#eventDate').text("");
+            $('#eventKeterangan').text("");
+        });
+
+        var calendarId = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarId);
+
+        function setCalendar() {
+            calendar = new FullCalendar.Calendar(calendarId, {
+
+                initialView: 'multiMonthYear',
+                multiMonthMaxColumns: 3,
+                headerToolbar: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                customButtons: {
+                    hariIniBtn: {
+                        text: 'Hari Ini'
+                    },
+                    tambahJadwalBtn: {
+                        text: 'Tambah Jadwal'
+                    }
+                },
+                locale: 'id',
+                /*data event di ambil dari setDataEventCalendar*/
+                events: [],
+                //jika tanggal yang di klik
+                dateClick: function (info) {
+                    // ambil semua event 
+                    var events = calendar.getEvents();
+                    //filter berdasarkan event hari ini
+                    var eventsOnDate = events.filter(function (event) {
+                        return event.start.toDateString() === info.date.toDateString();
+                    });
+
+                    //jika data ada
+                    if (eventsOnDate.length > 0) {
+                        var eventData = eventsOnDate.map(function (event) {
+                            return {
+                                date: event.extendedProps.date,
+                                keterangan: event.extendedProps.keterangan
+                            };
+                        });
+                        // Tampilkan modal
+                        setDataCalendarModal(eventData[0]);
+
+                    } else {
+                        $('#eventModalLabel').text("Tidak ada event");
+                        $('#eventModal').modal('show');
+                    }
+
+                },
+                //jika event yang di klik
+                eventClick: function (info) {
+                    //ambil data event dari tanggal hari ini
+                    var eventData = {
+                        date: info.event.extendedProps.date,
+                        keterangan: info.event.extendedProps.keterangan
+                    };
+                    // Tampilkan modal
+                    setDataCalendarModal(eventData);
+                },
+                datesSet: function (info) {
+                    $(".fc-tambahJadwalBtn-button").addClass("rounded");
+                    $(".fc-col-header-cell-cushion, .fc-daygrid-day-number").addClass(
+                        "link-dark text-decoration-none");
+                }
+            });
+
+            setDataEventCalendar();
+        }
+
+        function setDataEventCalendar() {
+            var date = calendar.view.currentStart;
+            var month = date.getMonth() + 1;
+            var year = date.getFullYear();
+
+            $.ajax({
+                url: `https://dayoffapi.vercel.app/api?year=${year}`,
+                method: "GET",
+                success: function (response) {
+                    if (response.length > 0) {
+                        var events = response.map(function (eventData) {
+                            return {
+                                title: eventData.keterangan,
+                                start: eventData.tanggal,
+                                className: "bg-danger border border-danger",
+                                extendedProps: {
+                                    date: eventData.tanggal,
+                                    keterangan: eventData.keterangan
+                                }
+                            };
+                        });
+
+                        calendar.removeAllEvents();
+                        calendar.setOption('events', events);
+                        calendar.render();
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                }
+            });
+        }
+
+        function setDataCalendarModal(eventData) {
+            $('#eventModalLabel').text("Detail event");
+            $('#eventDate').text("Tanggal : " + moment(eventData.date).format("DD-MM-YYYY"));
+            $('#eventKeterangan').text('Keterangan : ' + eventData.keterangan);
+
+            $('#eventModal').modal('show');
+        }
+
+        $(document).on("click", ".fc-prev-button", function () {
+            // Dapatkan data bulan sebelumnya setelah tombol diklik
+            setDataEventCalendar();
+        });
+
+        $(document).on("click", ".fc-next-button", function () {
+            // Dapatkan data bulan berikutnya setelah tombol diklik
+            setDataEventCalendar();
+        });
+    </script>
+
+</body>
+
+</html>
