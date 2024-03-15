@@ -61,10 +61,10 @@
 
         function setCalendar() {
             calendar = new FullCalendar.Calendar(calendarId, {
-
                 initialView: 'multiMonthYear',
                 multiMonthMaxColumns: 3,
                 contentHeight:"auto",
+                handleWindowResize:true,
                 headerToolbar: {
                     left: 'prev',
                     center: 'title',
