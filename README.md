@@ -1,5 +1,5 @@
 # Info
 
-Implemntasi dari API dari https://dayoffapi.vercel.app/ kemudian mengubahnya menjadi visual menggunakan plugin Fullcalendar  https://fullcalendar.io/
+Implemntasi dari API https://dayoffapi.vercel.app/ kemudian mengubahnya menjadi visual menggunakan plugin Fullcalendar  https://fullcalendar.io/
 
 
