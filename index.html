@@ -64,6 +64,7 @@
 
                 initialView: 'multiMonthYear',
                 multiMonthMaxColumns: 3,
+                contentHeight:"auto",
                 headerToolbar: {
                     left: 'prev',
                     center: 'title',
@@ -100,11 +101,7 @@
                         // Tampilkan modal
                         setDataCalendarModal(eventData[0]);
 
-                    } else {
-                        $('#eventModalLabel').text("Tidak ada event");
-                        $('#eventModal').modal('show');
                     }
-
                 },
                 //jika event yang di klik
                 eventClick: function (info) {
