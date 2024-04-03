@@ -15,8 +15,8 @@
 </head>
 
 <body>
-
     <div>
+        <!-- calendar -->
         <div id="calendar"></div>
         <div>
             <span>Sumber Data hari libur nasional : <i><a href="https://dayoffapi.vercel.app/">dayoffapi.vercel.app</a></i></span>
@@ -31,7 +31,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Konten modal -->
                     <p id="eventDate"></p>
                     <p id="eventKeterangan"></p>
                 </div>
@@ -67,7 +66,7 @@
                 handleWindowResize:true,
                 headerToolbar: {
                     left: 'prev',
-                    center: 'title',
+                    center: 'title',//hariIniBtn
                     right: 'next'
                 },
                 customButtons: {
@@ -134,9 +133,10 @@
                 success: function (response) {
                     if (response.length > 0) {
                         var events = response.map(function (eventData) {
+                            const tanggal = formatTanggal(eventData.tanggal);
                             return {
                                 title: eventData.keterangan,
-                                start: eventData.tanggal,
+                                start: tanggal,
                                 className: "bg-danger border border-danger",
                                 extendedProps: {
                                     date: eventData.tanggal,
@@ -152,9 +152,27 @@
 
                 },
                 error: function (xhr, status, error) {
-                    alert(xhr.responseJSON.message);
+                    let message = xhr.responseJSON.message;
+                    if(message.includes("Data tidak tersedia")){
+                        message = `Data hari libur ${year} belum tersedia`;
+                    }
+
+                    alert(message);
                 }
             });
+        }
+
+        function formatTanggal(tanggal) {
+            // Pisahkan tahun, bulan, dan tanggal
+            var parts = tanggal.split('-');
+
+            // Jika tanggal hanya satu digit, tambahkan '0' di depannya
+            if (parts[2].length === 1) {
+                parts[2] = '0' + parts[2];
+            }
+
+            // Gabungkan kembali bagian-bagian tanggal
+            return parts.join('-');
         }
 
         function setDataCalendarModal(eventData) {
